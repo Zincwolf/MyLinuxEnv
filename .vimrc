@@ -1,4 +1,11 @@
+
+" Basic settings
+
 set number
+set ruler
+set showcmd
+set ttimeout
+set ttimeoutlen=10
 set mouse=a
 set encoding=utf-8
 set tabstop=4
@@ -12,8 +19,45 @@ set autoindent
 set incsearch
 set hlsearch
 set termguicolors
-syntax on
+syntax enable
 filetype plugin indent on
+
+" Setting for Plugins
+
+call plug#begin('~/.vim/plugged')
+
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'preservim/nerdtree'
+Plug 'bfrg/vim-c-cpp-modern'
+
+call plug#end()
+
+" Another great colorscheme: retrobox
+colorscheme retrobox
+
+" coc.nvim
+" Tab to confirm auto completion
+inoremap <silent><expr> <Tab> pumvisible() ? coc#_select_confirm() : "\<Tab>"
+nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-reference)
+nnoremap <silent> K :call <SID>show_documentation()<CR>
+
+function! s:show_documentation()
+    if (index(['vim', 'help'], &filetype) >= 0)
+        execute 'h '.expand('<cword>')
+    elseif (coc#rpc#ready())
+        call CocActionAsync('doHover')
+    else
+        execute '!' . &keywordprg . " " . expand('<cword>')
+    endif
+endfunction
+
+" vim-c-cpp-modern configure
+let g:cpp_attributes_highlight = 1
+let g:cpp_member_highlight = 1
+let g:cpp_simple_highlight = 1
 
 " --- Auto Pair Brackets and Quotes ---
 
@@ -41,12 +85,14 @@ function! s:HandlePair(open, close) abort
 
     let l:col = col('.')
     let l:line = getline('.')
-    let l:next_char = (l:col < strlen(l:line)) ? l:line[l:col] : '' " Get char after cursor
+    " --- CORRECTED INDEX ---
+    " Get character AT the cursor's column (0-based index is col - 1)
+    let l:char_at_cursor = (l:col > 0 && l:col <= strlen(l:line)) ? l:line[l:col - 1] : ''
 
     " Check if we just typed a character that is its own closer (like a quote)
-    " AND if the character immediately after the cursor is the same character.
+    " AND if the character immediately AT the cursor is the same character.
     " If so, just move the cursor right (effectively 'overtyping').
-    if a:open ==# a:close && l:next_char ==# a:open
+    if a:open ==# a:close && l:char_at_cursor ==# a:open
         return "\<Right>"
     endif
 
@@ -63,10 +109,13 @@ function! s:CheckOvertype(char) abort
 
     let l:col = col('.')
     let l:line = getline('.')
-    let l:next_char = (l:col < strlen(l:line)) ? l:line[l:col] : ''
+    " --- CORRECTED INDEX ---
+    " Get character AT the cursor's column (0-based index is col - 1)
+    let l:char_at_cursor = (l:col > 0 && l:col <= strlen(l:line)) ? l:line[l:col - 1] : ''
 
-    " If the next character is the closing bracket we just typed, just move right
-    if l:next_char ==# a:char
+    " If the character AT the cursor is the closing bracket we just typed,
+    " it means we are right before an auto-inserted pair. Just move right.
+    if l:char_at_cursor ==# a:char
         return "\<Right>"
     else
         " Otherwise, insert the character normally
@@ -150,7 +199,7 @@ if get(g:, 'autopair_enable_angle_brackets', 1)
     vnoremap <silent> <lt> :call <SID>SurroundSelection('<', '>')<CR> " Use <lt> for '<'
 endif
 vnoremap <silent> ' :call <SID>SurroundSelection("'", "'")<CR>
-vnoremap <silent> " :call <SID>SurroundSelection('"', '"')<CR>
+vnoremap <silent> <leader>" :call <SID>SurroundSelection('"', '"')<CR>
 vnoremap <silent> ` :call <SID>SurroundSelection("`", "`")<CR>
 
 " --- End of Auto Pair ---
