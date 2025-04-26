@@ -1,0 +1,14 @@
+{
+	"diagnostic.level": "error",
+	"suggest.noselect": true,
+	"coc.preferences.formatOnSave": false,
+	"suggest.enableFloat": true,
+	"suggest.maxCompleteItemCount": 15,
+
+	"pyright.inlayHints.parameterTypes": false,
+	"pyright.inlayHints.variableTypes": false,
+    
+    "rust-analyzer.inlayHints.typeHints.enable": false,
+    
+    "inlayHint.enableParameter": false
+}
